@@ -1,0 +1,220 @@
+[
+  {
+    "id": "book_001",
+    "title": "1984",
+    "author": "George Orwell",
+    "genres": [
+      "distopie",
+      "fictiune politica"
+    ],
+    "themes": [
+      "libertate",
+      "control social",
+      "supraveghere",
+      "propaganda",
+      "adevar"
+    ],
+    "short_summary": "Romanul prezinta o societate totalitara in care statul controleaza informatia, gandirea si comportamentul oamenilor. Winston Smith incepe sa puna la indoiala sistemul si cauta libertatea si adevarul. Cartea exploreaza supravegherea, propaganda si manipularea.",
+    "full_summary": "Actiunea are loc in Oceania, o societate aflata sub controlul permanent al Partidului si al figurii numite Big Brother. Winston Smith lucreaza la modificarea documentelor istorice, dar incepe sa inteleaga modul in care adevarul este manipulat. Dorinta lui de libertate il face sa se opuna in secret regimului. Romanul analizeaza efectele supravegherii, propagandei si controlului asupra identitatii individuale."
+  },
+  {
+    "id": "book_002",
+    "title": "The Hobbit",
+    "author": "J.R.R. Tolkien",
+    "genres": [
+      "fantasy",
+      "aventura"
+    ],
+    "themes": [
+      "prietenie",
+      "magie",
+      "curaj",
+      "aventura",
+      "dezvoltare personala"
+    ],
+    "short_summary": "Bilbo Baggins paraseste viata sa linistita pentru a participa la o calatorie periculoasa alaturi de un grup de pitici. Pe parcurs intalneste creaturi fantastice, descopera un inel misterios si invata sa fie curajos. Cartea pune accent pe prietenie, aventura si maturizare.",
+    "full_summary": "Bilbo Baggins este un hobbit care prefera confortul casei sale, dar este invitat de vrajitorul Gandalf sa participe la o expeditie. Scopul grupului este recuperarea unei comori pazite de dragonul Smaug. Bilbo trece prin numeroase pericole si descopera ca este mai curajos si mai inventiv decat credea. Calatoria sa este o poveste despre prietenie, loialitate si dezvoltare personala."
+  },
+  {
+    "id": "book_003",
+    "title": "Harry Potter and the Philosopher's Stone",
+    "author": "J.K. Rowling",
+    "genres": [
+      "fantasy",
+      "aventura",
+      "young adult"
+    ],
+    "themes": [
+      "magie",
+      "prietenie",
+      "scoala",
+      "curaj",
+      "bine si rau"
+    ],
+    "short_summary": "Harry descopera ca este vrajitor si incepe sa studieze la Hogwarts. Acolo isi face prieteni si descopera mistere legate de trecutul sau. Povestea combina magia, prietenia, aventura si lupta dintre bine si rau.",
+    "full_summary": "Harry Potter creste fara sa cunoasca adevarul despre familia sa si despre lumea magica. La varsta de unsprezece ani afla ca este vrajitor si este acceptat la scoala Hogwarts. Impreuna cu Ron si Hermione, Harry descopera un complot legat de Piatra Filozofala. Experientele sale il ajuta sa inteleaga valoarea prieteniei, a curajului si a alegerilor personale."
+  },
+  {
+    "id": "book_004",
+    "title": "Fahrenheit 451",
+    "author": "Ray Bradbury",
+    "genres": [
+      "distopie",
+      "science fiction"
+    ],
+    "themes": [
+      "cenzura",
+      "libertate",
+      "carti",
+      "cunoastere",
+      "control social"
+    ],
+    "short_summary": "Intr-o societate in care cartile sunt interzise, pompierii au rolul de a le arde. Guy Montag incepe sa se indoiasca de sistem si sa inteleaga valoarea ideilor si a cunoasterii. Romanul exploreaza cenzura, conformismul si libertatea de gandire.",
+    "full_summary": "Guy Montag este un pompier care arde carti intr-o societate ce considera lectura periculoasa. Intalnirea cu o tanara curioasa il determina sa isi puna intrebari despre propria viata. Montag incepe sa pastreze carti si sa caute sensul ideilor ascunse in ele. Alegerea lui il transforma intr-un adversar al sistemului si il obliga sa fuga."
+  },
+  {
+    "id": "book_005",
+    "title": "All Quiet on the Western Front",
+    "author": "Erich Maria Remarque",
+    "genres": [
+      "roman de razboi",
+      "drama istorica"
+    ],
+    "themes": [
+      "razboi",
+      "supravietuire",
+      "prietenie",
+      "trauma",
+      "pierderea inocentei"
+    ],
+    "short_summary": "Un grup de tineri soldati germani descopera realitatea brutala a Primului Razboi Mondial. Prietenia ii ajuta sa supravietuiasca, dar experientele de pe front le schimba definitiv viata. Cartea prezinta trauma si pierderea inocentei provocate de razboi.",
+    "full_summary": "Paul Baumer si colegii sai se inroleaza in armata fiind influentati de discursuri patriotice. Ajunsi pe front, ei descopera foamea, frica, violenta si pierderea continua a camarazilor. Relatiile dintre soldati devin principala lor sursa de sprijin. Romanul arata cum razboiul distruge nu doar vieti, ci si capacitatea unei generatii de a reveni la normalitate."
+  },
+  {
+    "id": "book_006",
+    "title": "The Book Thief",
+    "author": "Markus Zusak",
+    "genres": [
+      "fictiune istorica",
+      "drama"
+    ],
+    "themes": [
+      "razboi",
+      "familie",
+      "carti",
+      "prietenie",
+      "puterea cuvintelor"
+    ],
+    "short_summary": "In timpul Germaniei naziste, o tanara pe nume Liesel gaseste refugiu in carti si in relatiile cu oamenii din jurul ei. Familia sa ascunde un tanar evreu, ceea ce ii pune pe toti in pericol. Povestea exploreaza razboiul, prietenia si puterea cuvintelor.",
+    "full_summary": "Liesel Meminger ajunge sa locuiasca alaturi de o familie adoptiva intr-un oras german. Ea invata sa citeasca si incepe sa fure carti in perioadele in care acestea sunt distruse sau abandonate. Familia sa il ascunde pe Max, un tanar evreu urmarit de regim. Prin carti, Liesel isi gaseste curajul si o modalitate de a intelege lumea violenta din jurul ei."
+  },
+  {
+    "id": "book_007",
+    "title": "The Little Prince",
+    "author": "Antoine de Saint-Exupery",
+    "genres": [
+      "fabula",
+      "fictiune filosofica"
+    ],
+    "themes": [
+      "prietenie",
+      "iubire",
+      "copilarie",
+      "responsabilitate",
+      "sensul vietii"
+    ],
+    "short_summary": "Un pilot intalneste in desert un print venit de pe o planeta mica. Prin povestile sale, Micul Print vorbeste despre prietenie, iubire si lucrurile cu adevarat importante. Cartea priveste lumea adultilor prin perspectiva sincera a unui copil.",
+    "full_summary": "Un aviator ramas fara avion in desert il intalneste pe Micul Print, un copil care vine de pe un asteroid indepartat. Printul povesteste despre planetele vizitate si despre oamenii neobisnuiti pe care i-a cunoscut. Relatia sa cu o floare si intalnirea cu vulpea il ajuta sa inteleaga iubirea si responsabilitatea. Povestea transmite ideea ca lucrurile esentiale nu sunt intotdeauna vizibile."
+  },
+  {
+    "id": "book_008",
+    "title": "Dune",
+    "author": "Frank Herbert",
+    "genres": [
+      "science fiction",
+      "aventura"
+    ],
+    "themes": [
+      "putere",
+      "politica",
+      "supravietuire",
+      "ecologie",
+      "destin"
+    ],
+    "short_summary": "Paul Atreides ajunge pe planeta desertica Arrakis, singura sursa a unei substante extrem de valoroase. Familia sa este prinsa intr-un conflict politic, iar Paul trebuie sa supravietuiasca si sa isi inteleaga destinul. Romanul combina politica, ecologia si lupta pentru putere.",
+    "full_summary": "Familia Atreides primeste controlul planetei Arrakis, un loc dificil, dar foarte important datorita resursei numite mirodenie. O tradare distruge pozitia familiei, iar Paul si mama sa fug in desert. Ei sunt primiti de populatia Fremen, care cunoaste modul de supravietuire pe planeta. Paul devine treptat o figura importanta intr-un conflict politic, religios si ecologic."
+  },
+  {
+    "id": "book_009",
+    "title": "The Alchemist",
+    "author": "Paulo Coelho",
+    "genres": [
+      "aventura",
+      "fictiune filosofica"
+    ],
+    "themes": [
+      "visuri",
+      "destin",
+      "calatorie",
+      "curaj",
+      "descoperire personala"
+    ],
+    "short_summary": "Un tanar pastor pleaca in cautarea unei comori despre care a visat. Calatoria il invata sa isi urmeze visurile si sa acorde atentie oamenilor si semnelor intalnite. Cartea este despre curaj, destin si descoperirea propriei directii.",
+    "full_summary": "Santiago este un tanar pastor care viseaza in mod repetat la o comoara aflata langa piramidele din Egipt. El decide sa isi paraseasca viata cunoscuta si sa porneasca in cautarea ei. In timpul calatoriei intalneste oameni care il invata despre alegeri, frica si perseverenta. Experienta il ajuta sa inteleaga ca drumul spre un obiectiv poate fi la fel de important ca rezultatul final."
+  },
+  {
+    "id": "book_010",
+    "title": "To Kill a Mockingbird",
+    "author": "Harper Lee",
+    "genres": [
+      "drama",
+      "fictiune sociala"
+    ],
+    "themes": [
+      "justitie",
+      "rasism",
+      "empatie",
+      "familie",
+      "curaj moral"
+    ],
+    "short_summary": "O fetita observa conflictele si prejudecatile din comunitatea sa atunci cand tatal ei apara un barbat acuzat pe nedrept. Povestea exploreaza justitia, rasismul si empatia. Experientele familiei arata ce inseamna curajul moral.",
+    "full_summary": "Scout Finch traieste intr-un oras din sudul Statelor Unite alaturi de fratele ei si de tatal lor, Atticus. Atticus este avocat si accepta sa apere un barbat de culoare acuzat pe nedrept. Procesul expune prejudecatile comunitatii si influenteaza modul in care Scout intelege lumea. Romanul pune accent pe empatie, dreptate si responsabilitatea de a face ceea ce este corect."
+  },
+  {
+    "id": "book_011",
+    "title": "The Martian",
+    "author": "Andy Weir",
+    "genres": [
+      "science fiction",
+      "aventura",
+      "supravietuire"
+    ],
+    "themes": [
+      "supravietuire",
+      "stiinta",
+      "izolare",
+      "inventivitate",
+      "perseverenta"
+    ],
+    "short_summary": "Un astronaut este abandonat accidental pe Marte si trebuie sa gaseasca metode pentru a ramane in viata. El foloseste stiinta, logica si umorul pentru a rezolva problemele zilnice. Cartea este despre supravietuire, inventivitate si perseverenta.",
+    "full_summary": "Mark Watney este considerat mort dupa o furtuna si este lasat in urma de echipajul sau pe Marte. Cand isi revine, descopera ca are resurse limitate si nicio posibilitate imediata de salvare. Folosindu-si cunostintele de botanica si inginerie, el creeaza solutii pentru hrana, apa si comunicare. In acelasi timp, NASA si fostii sai colegi incearca sa organizeze o misiune de salvare."
+  },
+  {
+    "id": "book_012",
+    "title": "The Name of the Rose",
+    "author": "Umberto Eco",
+    "genres": [
+      "mister",
+      "fictiune istorica"
+    ],
+    "themes": [
+      "mister",
+      "cunoastere",
+      "religie",
+      "carti",
+      "investigatie"
+    ],
+    "short_summary": "Intr-o manastire medievala au loc mai multe morti misterioase. Un calugar si tanarul sau insotitor investigheaza evenimentele, urmarind indicii ascunse in biblioteca manastirii. Romanul combina misterul, istoria, religia si lupta pentru cunoastere.",
+    "full_summary": "William of Baskerville soseste la o manastire pentru o intalnire religioasa, dar este rugat sa investigheze moartea unui calugar. Alte decese urmeaza, iar William cauta legaturi intre ele. Investigatia il conduce catre biblioteca secreta a manastirii si catre o carte considerata periculoasa. Povestea exploreaza conflictul dintre cunoastere, autoritate si frica."
+  }
+]

@@ -1,0 +1,26 @@
+# API keys and local configuration
+.env
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Test and cache directories
+.pytest_cache/
+.mypy_cache/
+
+# Local Chroma database
+backend/chroma_data/
+
+# IDE files
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
