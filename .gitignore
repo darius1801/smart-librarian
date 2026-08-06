@@ -24,3 +24,14 @@ backend/chroma_data/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+
+# React and Vite
+frontend/node_modules/
+frontend/dist/
+
+# Generated audio files
+backend/generated_audio/
+
+# Generated images
+backend/generated_images/

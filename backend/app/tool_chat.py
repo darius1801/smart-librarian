@@ -255,17 +255,20 @@ def recommend_book_with_summary(user_question):
         )
 
     final_instructions = (
-        "Construieste raspunsul final in limba romana. "
-        "Raspunsul trebuie sa contina doua sectiuni clare. "
-        "Prima sectiune trebuie sa recomande cartea si sa explice "
-        "in 2 sau 3 propozitii de ce se potriveste cererii. "
-        "A doua sectiune trebuie sa contina rezumatul complet "
-        "primit de la tool. "
-        "Foloseste titlul exact ales anterior. "
-        "Nu inventa informatii. "
-        "Nu mentiona tool-ul, function calling, ChromaDB, "
-        "embeddingurile sau procesul intern."
-    )
+    "Construieste raspunsul final in limba romana. "
+    "Raspunsul trebuie sa contina doua sectiuni clare. "
+    "Prima sectiune trebuie sa recomande cartea si sa explice "
+    "in 2 sau 3 propozitii de ce se potriveste cererii. "
+    "A doua sectiune trebuie sa contina rezumatul complet "
+    "primit de la tool. "
+    "Foloseste titlul exact ales anterior. "
+    "Nu inventa informatii. "
+    "Nu folosi Markdown. "
+    "Nu folosi caractere precum #, ** sau liste Markdown. "
+    "Foloseste doar text simplu si titluri scrise cu litere mari. "
+    "Nu mentiona tool-ul, function calling, ChromaDB, "
+    "embeddingurile sau procesul intern."
+)
 
 
     try:
