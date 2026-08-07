@@ -5,7 +5,16 @@ from openai import OpenAI
 
 
 TTS_MODEL = "gpt-4o-mini-tts"
-TTS_VOICE = "coral"
+
+DEFAULT_TTS_VOICE = "coral"
+
+ALLOWED_TTS_VOICES = [
+    "coral",
+    "marin",
+    "cedar",
+    "nova"
+]
+
 
 AUDIO_FOLDER_PATH = Path(
     "backend/generated_audio"
@@ -17,22 +26,8 @@ AUDIO_FILE_PATH = (
 )
 
 
-def create_audio_file(text):
-    """
-    Transforma un text intr-un fisier audio MP3.
-
-    Parametru:
-        text:
-            Textul care trebuie citit.
-
-    Returneaza:
-        Calea catre fisierul audio generat.
-    """
-
-    # ---------------------------------------------------------
-    # PASUL 1: Verificam textul.
-    # ---------------------------------------------------------
-
+def create_audio_file(text, voice=DEFAULT_TTS_VOICE):
+   
     if text is None:
         raise ValueError(
             "Textul pentru audio nu a fost primit."
@@ -45,11 +40,22 @@ def create_audio_file(text):
             "Textul pentru audio nu poate fi gol."
         )
 
-    # ---------------------------------------------------------
-    # PASUL 2: Verificam cheia OpenAI.
-    # ---------------------------------------------------------
 
-    api_key = os.getenv("OPENAI_API_KEY")
+    if voice is None:
+        cleaned_voice = DEFAULT_TTS_VOICE
+    else:
+        cleaned_voice = voice.strip().lower()
+
+
+    if cleaned_voice not in ALLOWED_TTS_VOICES:
+        raise ValueError(
+            "Vocea TTS primita nu este permisa."
+        )
+
+
+    api_key = os.getenv(
+        "OPENAI_API_KEY"
+    )
 
     if api_key is None:
         raise RuntimeError(
@@ -61,30 +67,21 @@ def create_audio_file(text):
             "Variabila OPENAI_API_KEY este goala."
         )
 
-    # ---------------------------------------------------------
-    # PASUL 3: Cream folderul audio.
-    # ---------------------------------------------------------
 
     AUDIO_FOLDER_PATH.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    # ---------------------------------------------------------
-    # PASUL 4: Cream clientul OpenAI.
-    # ---------------------------------------------------------
 
     openai_client = OpenAI()
 
-    # ---------------------------------------------------------
-    # PASUL 5: Generam fisierul audio.
-    # ---------------------------------------------------------
 
     with (
         openai_client.audio.speech
         .with_streaming_response.create(
             model=TTS_MODEL,
-            voice=TTS_VOICE,
+            voice=cleaned_voice,
             input=cleaned_text,
             instructions=(
                 "Vorbeste clar, calm si prietenos. "
@@ -93,12 +90,10 @@ def create_audio_file(text):
             )
         )
     ) as response:
+
         response.stream_to_file(
             AUDIO_FILE_PATH
         )
 
-    # ---------------------------------------------------------
-    # PASUL 6: Returnam calea fisierului.
-    # ---------------------------------------------------------
 
     return AUDIO_FILE_PATH

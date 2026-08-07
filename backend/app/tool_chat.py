@@ -8,6 +8,14 @@ from backend.app.rag_chat import build_books_context
 from backend.app.retrieval import search_books
 from backend.app.safety import contains_inappropriate_language
 
+from backend.app.intention import (
+    BOOK_INFO,
+    BOOK_RECOMMENDATION,
+    OTHER,
+    classify_user_intent
+)
+
+
 CHAT_MODEL = "gpt-4o-mini"
 NUMBER_OF_RETRIEVED_BOOKS = 3
 
@@ -89,9 +97,6 @@ def recommend_book_with_summary(user_question):
             "Pot sa te ajut cu recomandari de carti."
         )
 
-    # ---------------------------------------------------------
-    # PASUL 5: Verificam cheia OpenAI.
-    # ---------------------------------------------------------
 
     api_key = os.getenv("OPENAI_API_KEY")
 
@@ -101,7 +106,44 @@ def recommend_book_with_summary(user_question):
     if api_key.strip() == "":
         return "Eroare: variabila OPENAI_API_KEY este goala."
 
-    # Restul functiei continua aici.
+        # ---------------------------------------------------------
+    # PASUL 5: Clasificam intentia utilizatorului.
+    # ---------------------------------------------------------
+
+    print()
+    print("Clasificam intentia utilizatorului.")
+
+    user_intent = classify_user_intent(
+        cleaned_question
+    )
+
+    print(
+        "Intent detectat:",
+        user_intent
+    )
+
+    # ---------------------------------------------------------
+    # PASUL 6: Blocam mesajele care nu sunt despre carti.
+    # ---------------------------------------------------------
+
+    if user_intent == OTHER:
+        print()
+        print(
+            "Mesajul nu este relevant "
+            "pentru Smart Librarian."
+        )
+
+        print(
+            "Nu apelam RAG-ul."
+        )
+
+        return (
+            "Sunt specializat in recomandari si informatii "
+            "despre carti, asa ca nu te pot ajuta cu "
+            "intrebarea aceasta.\n\n"
+            "Spune-mi ce genuri, teme sau tipuri de povesti "
+            "iti plac si iti voi cauta o carte potrivita."
+        )
 
 
     retrieved_books = search_books(
@@ -141,18 +183,39 @@ def recommend_book_with_summary(user_question):
         }
     ]
 
-    selection_instructions = (
-        "Esti Smart Librarian, un asistent care recomanda carti. "
-        "Raspunde si lucreaza in limba romana. "
-        "Analizeaza cererea utilizatorului si cartile din context. "
-        "Alege o singura carte dintre cartile disponibile. "
-        "Nu alege o carte care nu apare in context. "
-        "Foloseste exact titlul cartii din context. "
-        "Dupa ce ai ales cartea, apeleaza tool-ul "
-        "get_summary_by_title folosind titlul exact. "
-        "Nu inventa titluri. "
-        "Nu oferi raspunsul final inainte de apelarea tool-ului."
-    )
+    if user_intent == BOOK_RECOMMENDATION:
+
+        selection_instructions = (
+            "Esti Smart Librarian, un asistent "
+            "specializat in carti. "
+            "Utilizatorul cere o recomandare. "
+            "Analizeaza cererea si cartile din context. "
+            "Alege o singura carte dintre cartile disponibile. "
+            "Nu alege o carte care nu apare in context. "
+            "Foloseste exact titlul cartii din context. "
+            "Dupa ce ai ales cartea, apeleaza tool-ul "
+            "get_summary_by_title folosind titlul exact. "
+            "Nu inventa titluri. "
+            "Nu oferi raspunsul final inainte "
+            "de apelarea tool-ului."
+        )
+
+    elif user_intent == BOOK_INFO:
+
+        selection_instructions = (
+            "Esti Smart Librarian, un asistent "
+            "specializat in carti. "
+            "Utilizatorul cere informatii despre o carte. "
+            "Identifica dintre cartile din context "
+            "titlul despre care intreaba utilizatorul. "
+            "Foloseste numai cartile din context. "
+            "Foloseste exact titlul cartii. "
+            "Apeleaza tool-ul get_summary_by_title "
+            "pentru acel titlu. "
+            "Nu inventa titluri. "
+            "Nu oferi raspunsul final inainte "
+            "de apelarea tool-ului."
+        )
 
     openai_client = OpenAI()
 
@@ -254,21 +317,37 @@ def recommend_book_with_summary(user_question):
             "get_summary_by_title."
         )
 
-    final_instructions = (
-    "Construieste raspunsul final in limba romana. "
-    "Raspunsul trebuie sa contina doua sectiuni clare. "
-    "Prima sectiune trebuie sa recomande cartea si sa explice "
-    "in 2 sau 3 propozitii de ce se potriveste cererii. "
-    "A doua sectiune trebuie sa contina rezumatul complet "
-    "primit de la tool. "
-    "Foloseste titlul exact ales anterior. "
-    "Nu inventa informatii. "
-    "Nu folosi Markdown. "
-    "Nu folosi caractere precum #, ** sau liste Markdown. "
-    "Foloseste doar text simplu si titluri scrise cu litere mari. "
-    "Nu mentiona tool-ul, function calling, ChromaDB, "
-    "embeddingurile sau procesul intern."
-)
+    if user_intent == BOOK_RECOMMENDATION:
+
+        final_instructions = (
+            "Construieste raspunsul final in limba romana. "
+            "Utilizatorul a cerut o recomandare de carte. "
+            "Recomanda cartea aleasa si explica in "
+            "2 sau 3 propozitii de ce se potriveste. "
+            "Apoi afiseaza rezumatul complet primit "
+            "de la tool. "
+            "Foloseste titlul exact. "
+            "Nu inventa informatii. "
+            "Nu folosi Markdown. "
+            "Nu mentiona tool-ul, ChromaDB, embeddings "
+            "sau procesul intern."
+        )
+
+    elif user_intent == BOOK_INFO:
+
+        final_instructions = (
+            "Construieste raspunsul final in limba romana. "
+            "Utilizatorul a cerut informatii despre o carte. "
+            "Raspunde direct despre cartea identificata. "
+            "Mentioneaza titlul si autorul daca sunt disponibili. "
+            "Apoi prezinta rezumatul complet primit de la tool. "
+            "Nu spune 'Iti recomand' daca utilizatorul "
+            "nu a cerut o recomandare. "
+            "Nu inventa informatii. "
+            "Nu folosi Markdown. "
+            "Nu mentiona tool-ul, ChromaDB, embeddings "
+            "sau procesul intern."
+        )
 
 
     try:

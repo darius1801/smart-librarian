@@ -1,5 +1,8 @@
+
 from fastapi import FastAPI
+from fastapi import File
 from fastapi import HTTPException
+from fastapi import UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -7,6 +10,7 @@ from pydantic import BaseModel
 from backend.app.tool_chat import recommend_book_with_summary
 from backend.app.text_to_speech import create_audio_file
 from backend.app.image import create_book_image
+from backend.app.transcriptions import transcribe_audio_bytes
 
 app = FastAPI(
     title="Smart Librarian API",
@@ -45,9 +49,14 @@ class ChatResponse(BaseModel):
     answer: str
 
 class TextToSpeechRequest(BaseModel):
-    text: str    
+    text: str
+    voice: str = "coral"  
 
 class ImageGenerationRequest(BaseModel):
+    text: str
+
+
+class TranscriptionResponse(BaseModel):
     text: str
 
 @app.get("/")
@@ -91,10 +100,12 @@ def text_to_speech(
     """
 
     text = speech_request.text
+    voice = speech_request.voice
 
     try:
         audio_file_path = create_audio_file(
-            text=text
+            text=text,
+            voice=voice
         )
 
     except ValueError as error:
@@ -163,3 +174,79 @@ def generate_book_image(
         media_type="image/png",
         filename="smart-librarian-book-image.png"
     )
+
+
+@app.post(
+    "/api/transcribe",
+    response_model=TranscriptionResponse
+)
+async def transcribe_audio(
+    audio_file: UploadFile = File(...)
+):
+   
+
+    try:
+
+        audio_bytes = await audio_file.read()
+
+
+        if len(audio_bytes) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Fisierul audio este gol."
+            )
+        
+        max_file_size = (
+            25
+            * 1024
+            * 1024
+        )
+
+
+        if len(audio_bytes) > max_file_size:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Fisierul audio este prea mare. "
+                    "Dimensiunea maxima este 25 MB."
+                )
+            )
+
+        # Transcriem audio.
+       
+        transcription_text = (
+            transcribe_audio_bytes(
+                audio_bytes=audio_bytes,
+                original_filename=audio_file.filename
+            )
+        )
+
+
+        return {
+            "text": transcription_text
+        }
+
+
+    except HTTPException:
+        raise
+
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        )
+
+
+    except Exception as error:
+        print()
+        print("Eroare la Speech to Text:")
+        print(error)
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Nu am putut transcrie "
+                "fisierul audio."
+            )
+        )

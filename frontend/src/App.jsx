@@ -1,57 +1,177 @@
-import { useState } from "react";
+import {
+    useEffect,
+    useState,
+    useRef
+} from "react";
+
+import Sidebar from "./components/Sidebar";
+import WelcomeScreen from "./components/WelcomeScreen";
+import ChatInput from "./components/ChatInput";
+import MessageList from "./components/MessageList";
+import SettingsModal from "./components/Settings";
 
 import "./App.css";
 
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+const CHATS_STORAGE_KEY =
+    "smartLibrarianChats";
 
-const SAMPLE_QUESTIONS = [
-    "Vreau o carte despre libertate si control social.",
-    "Ce imi recomanzi daca iubesc povestile fantastice?",
-    "Vreau o poveste despre razboi, trauma si prietenie.",
-    "Caut o carte despre supravietuire si stiinta."
-];
+const SETTINGS_STORAGE_KEY =
+    "smartLibrarianSettings";
+ 
+const DEFAULT_SETTINGS = {
+    ttsVoice: "coral",
+    saveHistory: true
+};
+
+function loadChatsFromStorage() {
+    
+    const savedChats = localStorage.getItem(
+        CHATS_STORAGE_KEY
+    );
+
+    if (savedChats === null) {
+        return [];
+    }
+
+    try {
+        const parsedChats = JSON.parse(
+            savedChats
+        );
+
+        if (Array.isArray(parsedChats) === false) {
+            return [];
+        }
+
+        return parsedChats;
+
+    } catch (error) {
+        console.error(
+            "Nu am putut citi istoricul conversatiilor.",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+function createChatTitle(firstMessage) {
+    
+
+    const cleanedMessage =
+        firstMessage.trim();
+
+    const words =
+        cleanedMessage.split(" ");
+
+    const titleWords = [];
+
+    let wordIndex = 0;
+
+    while (
+        wordIndex < words.length
+        && wordIndex < 6
+    ) {
+        titleWords.push(
+            words[wordIndex]
+        );
+
+        wordIndex =
+            wordIndex + 1;
+    }
+
+    let title =
+        titleWords.join(" ");
+
+    if (words.length > 6) {
+        title =
+            title + "...";
+    }
+
+    return title;
+}
+
+function loadSettingsFromStorage() {
+    const savedSettings =
+        localStorage.getItem(
+            SETTINGS_STORAGE_KEY
+        );
+
+    if (savedSettings === null) {
+        return DEFAULT_SETTINGS;
+    }
+
+
+    try {
+        const parsedSettings =
+            JSON.parse(
+                savedSettings
+            );
+
+
+        const loadedSettings = {
+            ttsVoice:
+                parsedSettings.ttsVoice
+                || DEFAULT_SETTINGS.ttsVoice,
+
+            saveHistory:
+                parsedSettings.saveHistory
+                !== false
+        };
+
+
+        return loadedSettings;
+
+    } catch (error) {
+        console.error(
+            "Nu am putut citi setarile salvate.",
+            error
+        );
+
+        return DEFAULT_SETTINGS;
+    }
+}
 
 
 function App() {
-    const [message, setMessage] = useState("");
+    const [message, setMessage] =
+        useState("");
 
-    const [messages, setMessages] = useState([
-        {
-            sender: "assistant",
-            text: (
-                "Buna! Sunt Smart Librarian. " +
-                "Descrie temele sau tipul de poveste care iti plac, " +
-                "iar eu iti voi recomanda o carte."
-            )
-        }
-    ]);
+    
+    const [chats, setChats] =
+        useState(
+            loadChatsFromStorage
+        );
 
-    const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    
+    const [
+        activeChatId,
+        setActiveChatId
+    ] = useState(null);
 
-    /*
-    audioUrls pastreaza adresele locale pentru fisierele audio.
+    const [
+        errorMessage,
+        setErrorMessage
+    ] = useState("");
 
-    Exemplu:
-    {
-        2: "blob:http://localhost:5173/..."
-    }
+    const [
+        isLoading,
+        setIsLoading
+    ] = useState(false);
 
-    Cifra 2 reprezinta pozitia mesajului.
-    */
-    const [audioUrls, setAudioUrls] = useState({});
+    const [
+        audioUrls,
+        setAudioUrls
+    ] = useState({});
 
-    /*
-    imageUrls functioneaza la fel, dar pentru imagini.
-    */
-    const [imageUrls, setImageUrls] = useState({});
+    const [
+        imageUrls,
+        setImageUrls
+    ] = useState({});
 
-    /*
-    Retinem pentru ce mesaj se genereaza momentan audio
-    sau imagine.
-    */
     const [
         audioLoadingIndex,
         setAudioLoadingIndex
@@ -62,38 +182,131 @@ function App() {
         setImageLoadingIndex
     ] = useState(null);
 
+    const [
+        settings,
+        setSettings
+    ] = useState(loadSettingsFromStorage);
 
-    function handleMessageChange(event) {
-        setMessage(event.target.value);
+
+    const [
+        settingsOpen,
+        setSettingsOpen
+    ] =     useState(false);
+
+
+    const [
+        isRecording,
+        setIsRecording
+    ] = useState(false);
+
+
+    const [
+        isTranscribing,
+        setIsTranscribing
+    ] = useState(false);
+
+    const mediaRecorderRef =
+    useRef(null);
+
+    const mediaStreamRef =
+        useRef(null);
+
+    const audioChunksRef =
+        useRef([]);
+
+   
+    useEffect(
+        function () {
+            if (settings.saveHistory === true) {
+                localStorage.setItem(
+                    CHATS_STORAGE_KEY,
+                    JSON.stringify(chats)
+                );
+            } else {
+                localStorage.removeItem(
+                    CHATS_STORAGE_KEY
+                );
+            }
+        },
+        [
+            chats,
+            settings.saveHistory
+        ]
+    );
+
+
+    useEffect(
+        function () {
+            localStorage.setItem(
+                SETTINGS_STORAGE_KEY,
+                JSON.stringify(settings)
+            );
+        },
+        [settings]
+    );
+
+   
+    let activeChat = null;
+
+    for (const chat of chats) {
+        if (chat.id === activeChatId) {
+            activeChat = chat;
+            break;
+        }
     }
 
 
-    function handleExampleClick(question) {
-        setMessage(question);
+    let messages = [];
+
+    if (activeChat !== null) {
+        messages =
+            activeChat.messages;
+    }
+
+
+    function handleMessageChange(event) {
+        setMessage(
+            event.target.value
+        );
+    }
+
+
+    function handleExampleClick(
+        exampleText
+    ) {
+        setMessage(
+            exampleText
+        );
+
         setErrorMessage("");
     }
 
 
     function releaseGeneratedFiles() {
-        /*
-        Eliberam adresele temporare create de browser.
-        */
+    
+        const audioIndexes =
+            Object.keys(
+                audioUrls
+            );
 
-        const audioIndexes = Object.keys(
-            audioUrls
-        );
-
-        for (const audioIndex of audioIndexes) {
+        for (
+            const audioIndex
+            of audioIndexes
+        ) {
             URL.revokeObjectURL(
                 audioUrls[audioIndex]
             );
         }
 
-        const imageIndexes = Object.keys(
-            imageUrls
-        );
+        const imageIndexes =
+            Object.keys(
+                imageUrls
+            );
 
-        for (const imageIndex of imageIndexes) {
+        for (
+            const imageIndex
+            of imageIndexes
+        ) {
             URL.revokeObjectURL(
                 imageUrls[imageIndex]
             );
@@ -101,32 +314,48 @@ function App() {
     }
 
 
-    function clearConversation() {
+    function resetGeneratedMedia() {
         releaseGeneratedFiles();
 
-        setMessages([
-            {
-                sender: "assistant",
-                text: (
-                    "Conversatia a fost resetata. " +
-                    "Spune-mi ce fel de carte cauti."
-                )
-            }
-        ]);
-
-        setMessage("");
-        setErrorMessage("");
         setAudioUrls({});
         setImageUrls({});
+
         setAudioLoadingIndex(null);
         setImageLoadingIndex(null);
+    }
+
+
+    function handleNewChat() {
+      
+        resetGeneratedMedia();
+
+        setActiveChatId(null);
+
+        setMessage("");
+
+        setErrorMessage("");
+    }
+
+
+    function handleChatSelect(chatId) {
+      
+        resetGeneratedMedia();
+
+        setActiveChatId(
+            chatId
+        );
+
+        setMessage("");
+
+        setErrorMessage("");
     }
 
 
     async function handleSubmit(event) {
         event.preventDefault();
 
-        const cleanedMessage = message.trim();
+        const cleanedMessage =
+            message.trim();
 
         if (cleanedMessage === "") {
             setErrorMessage(
@@ -137,6 +366,7 @@ function App() {
         }
 
         setErrorMessage("");
+
         setIsLoading(true);
 
         const userChatMessage = {
@@ -144,59 +374,192 @@ function App() {
             text: cleanedMessage
         };
 
-        const messagesAfterUser = messages.slice();
 
-        messagesAfterUser.push(
-            userChatMessage
-        );
+        let currentChatId =
+            activeChatId;
 
-        setMessages(messagesAfterUser);
-        setMessage("");
 
-        try {
-            const response = await fetch(
-                API_BASE_URL + "/api/chat",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: cleanedMessage
-                    })
+        if (currentChatId === null) {
+           
+            const newChatId =
+                Date.now();
+
+            const currentTime =
+                Date.now();
+
+            const newChat = {
+                id: newChatId,
+
+                title: createChatTitle(
+                    cleanedMessage
+                ),
+
+                messages: [
+                    userChatMessage
+                ],
+
+                createdAt: currentTime,
+                updatedAt: currentTime
+            };
+
+          
+            setChats(
+                function (currentChats) {
+                    return [
+                        newChat,
+                        ...currentChats
+                    ];
                 }
             );
 
-            if (response.ok === false) {
+            currentChatId =
+                newChatId;
+
+            setActiveChatId(
+                newChatId
+            );
+
+        } else {
+          
+            setChats(
+                function (currentChats) {
+                    const updatedChats = [];
+
+                    for (
+                        const chat
+                        of currentChats
+                    ) {
+                        if (
+                            chat.id
+                            === currentChatId
+                        ) {
+                            const updatedMessages =
+                                chat.messages.slice();
+
+                            updatedMessages.push(
+                                userChatMessage
+                            );
+
+                            const updatedChat = {
+                                ...chat,
+
+                                messages:
+                                    updatedMessages,
+
+                                updatedAt:
+                                    Date.now()
+                            };
+
+                            updatedChats.push(
+                                updatedChat
+                            );
+                        } else {
+                            updatedChats.push(
+                                chat
+                            );
+                        }
+                    }
+
+                    return updatedChats;
+                }
+            );
+        }
+
+        setMessage("");
+
+
+        try {
+            const response =
+                await fetch(
+                    API_BASE_URL
+                        + "/api/chat",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            message:
+                                cleanedMessage
+                        })
+                    }
+                );
+
+
+            if (
+                response.ok
+                === false
+            ) {
                 throw new Error(
                     "Backendul a returnat o eroare."
                 );
             }
 
-            const responseData = await response.json();
+
+            const responseData =
+                await response.json();
+
 
             const assistantChatMessage = {
                 sender: "assistant",
                 text: responseData.answer
             };
 
-            const messagesAfterAssistant =
-                messagesAfterUser.slice();
 
-            messagesAfterAssistant.push(
-                assistantChatMessage
-            );
+            setChats(
+                function (currentChats) {
+                    const updatedChats = [];
 
-            setMessages(
-                messagesAfterAssistant
+                    for (
+                        const chat
+                        of currentChats
+                    ) {
+                        if (
+                            chat.id
+                            === currentChatId
+                        ) {
+                            const updatedMessages =
+                                chat.messages.slice();
+
+                            updatedMessages.push(
+                                assistantChatMessage
+                            );
+
+                            const updatedChat = {
+                                ...chat,
+
+                                messages:
+                                    updatedMessages,
+
+                                updatedAt:
+                                    Date.now()
+                            };
+
+                            updatedChats.push(
+                                updatedChat
+                            );
+                        } else {
+                            updatedChats.push(
+                                chat
+                            );
+                        }
+                    }
+
+                    return updatedChats;
+                }
             );
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                error
+            );
 
             setErrorMessage(
-                "Nu am putut comunica cu backendul. " +
-                "Verifica daca serverul FastAPI este pornit."
+                "Nu am putut comunica cu backendul. "
+                + "Verifica daca FastAPI este pornit."
             );
 
         } finally {
@@ -204,82 +567,309 @@ function App() {
         }
     }
 
+    async function sendAudioForTranscription(
+        audioBlob
+    ) {
+        setIsTranscribing(true);
+        setErrorMessage("");
+
+
+        try {
+           
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "audio_file",
+                audioBlob,
+                "voice_input.webm"
+            );
+
+
+            const response =
+                await fetch(
+                    API_BASE_URL
+                    + "/api/transcribe",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            if (response.ok === false) {
+                throw new Error(
+                    "Backendul nu a putut "
+                    + "transcrie fisierul."
+                );
+            }
+
+
+            const responseData =
+                await response.json();
+
+
+            const transcriptionText =
+                responseData.text;
+
+
+            if (
+                transcriptionText === undefined
+                || transcriptionText.trim() === ""
+            ) {
+                throw new Error(
+                    "Transcrierea primita este goala."
+                );
+            }
+
+            setMessage(
+                transcriptionText
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+
+            setErrorMessage(
+                "Nu am putut transcrie mesajul vocal. "
+                + "Incearca din nou."
+            );
+
+        } finally {
+            setIsTranscribing(false);
+        }
+}
+
+    async function handleMicrophoneClick() {
+
+    if (isRecording === true) {
+        if (
+            mediaRecorderRef.current
+            !== null
+        ) {
+            mediaRecorderRef.current.stop();
+        }
+
+        return;
+    }
+
+
+    setErrorMessage("");
+
+
+    try {
+      
+        const mediaStream =
+            await navigator.mediaDevices
+                .getUserMedia({
+                    audio: true
+                });
+
+
+        mediaStreamRef.current =
+            mediaStream;
+
+
+        const webmIsSupported =
+            MediaRecorder.isTypeSupported(
+                "audio/webm"
+            );
+
+
+        if (webmIsSupported === false) {
+
+            const tracks =
+                mediaStream.getTracks();
+
+            for (const track of tracks) {
+                track.stop();
+            }
+
+
+            throw new Error(
+                "Browserul nu suporta "
+                + "inregistrarea audio WebM."
+            );
+        }
+
+
+        const mediaRecorder =
+            new MediaRecorder(
+                mediaStream,
+                {
+                    mimeType:
+                        "audio/webm"
+                }
+            );
+
+
+        mediaRecorderRef.current =
+            mediaRecorder;
+
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable =
+            function (event) {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(
+                        event.data
+                    );
+                }
+            };
+
+        mediaRecorder.onstop =
+            async function () {
+
+                const audioBlob =
+                    new Blob(
+                        audioChunksRef.current,
+                        {
+                            type: "audio/webm"
+                        }
+                    );
+
+                const tracks =
+                    mediaStream.getTracks();
+
+
+                for (const track of tracks) {
+                    track.stop();
+                }
+
+
+                mediaStreamRef.current =
+                    null;
+
+                mediaRecorderRef.current =
+                    null;
+
+
+                setIsRecording(false);
+
+                await sendAudioForTranscription(
+                    audioBlob
+                );
+            };
+
+        mediaRecorder.start();
+
+        setIsRecording(true);
+
+
+    } catch (error) {
+        console.error(
+            error
+        );
+
+
+        setIsRecording(false);
+
+
+        setErrorMessage(
+            "Nu am putut folosi microfonul. "
+            + "Verifica permisiunea browserului."
+        );
+    }
+}
+
 
     async function handleAudioClick(
         messageIndex,
         messageText
     ) {
         setErrorMessage("");
-        setAudioLoadingIndex(messageIndex);
+
+        setAudioLoadingIndex(
+            messageIndex
+        );
+
 
         try {
-            const response = await fetch(
-                API_BASE_URL + "/api/tts",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        text: messageText
-                    })
-                }
-            );
+            const response =
+                await fetch(
+                    API_BASE_URL
+                        + "/api/tts",
+                    {
+                        method: "POST",
 
-            if (response.ok === false) {
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            text: messageText,
+                            voice: settings.ttsVoice
+                        })
+                    }
+                );
+
+
+            if (
+                response.ok
+                === false
+            ) {
                 throw new Error(
-                    "Backendul nu a putut genera audio."
+                    "Nu am putut genera audio."
                 );
             }
 
-            /*
-            Raspunsul nu este JSON.
-            Este un fisier audio binar.
-            */
-            const audioBlob = await response.blob();
 
-            /*
-            Cream o adresa temporara pe care elementul
-            audio din browser o poate folosi.
-            */
-            const audioUrl = URL.createObjectURL(
-                audioBlob
-            );
+            const audioBlob =
+                await response.blob();
 
-            const updatedAudioUrls = Object.assign(
-                {},
-                audioUrls
-            );
 
-            /*
-            Daca exista deja un audio pentru acest mesaj,
-            eliberam URL-ul vechi.
-            */
+            const audioUrl =
+                URL.createObjectURL(
+                    audioBlob
+                );
+
+
+            const updatedAudioUrls =
+                Object.assign(
+                    {},
+                    audioUrls
+                );
+
+
             if (
-                updatedAudioUrls[messageIndex]
-                !== undefined
+                updatedAudioUrls[
+                    messageIndex
+                ] !== undefined
             ) {
                 URL.revokeObjectURL(
-                    updatedAudioUrls[messageIndex]
+                    updatedAudioUrls[
+                        messageIndex
+                    ]
                 );
             }
 
-            updatedAudioUrls[messageIndex] =
-                audioUrl;
+
+            updatedAudioUrls[
+                messageIndex
+            ] = audioUrl;
+
 
             setAudioUrls(
                 updatedAudioUrls
             );
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                error
+            );
 
             setErrorMessage(
                 "Nu am putut genera fisierul audio."
             );
 
         } finally {
-            setAudioLoadingIndex(null);
+            setAudioLoadingIndex(
+                null
+            );
         }
     }
 
@@ -289,389 +879,293 @@ function App() {
         messageText
     ) {
         setErrorMessage("");
-        setImageLoadingIndex(messageIndex);
+
+        setImageLoadingIndex(
+            messageIndex
+        );
+
 
         try {
-            const response = await fetch(
-                API_BASE_URL
-                + "/api/generate-image",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        text: messageText
-                    })
-                }
-            );
+            const response =
+                await fetch(
+                    API_BASE_URL
+                        + "/api/generate-image",
+                    {
+                        method: "POST",
 
-            if (response.ok === false) {
-                throw new Error(
-                    "Backendul nu a putut genera imaginea."
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            text:
+                                messageText
+                        })
+                    }
                 );
-            }
 
-            /*
-            Raspunsul este fisierul PNG.
-            */
-            const imageBlob = await response.blob();
-
-            const imageUrl = URL.createObjectURL(
-                imageBlob
-            );
-
-            const updatedImageUrls = Object.assign(
-                {},
-                imageUrls
-            );
 
             if (
-                updatedImageUrls[messageIndex]
-                !== undefined
+                response.ok
+                === false
             ) {
-                URL.revokeObjectURL(
-                    updatedImageUrls[messageIndex]
+                throw new Error(
+                    "Nu am putut genera imaginea."
                 );
             }
 
-            updatedImageUrls[messageIndex] =
-                imageUrl;
+
+            const imageBlob =
+                await response.blob();
+
+
+            const imageUrl =
+                URL.createObjectURL(
+                    imageBlob
+                );
+
+
+            const updatedImageUrls =
+                Object.assign(
+                    {},
+                    imageUrls
+                );
+
+
+            if (
+                updatedImageUrls[
+                    messageIndex
+                ] !== undefined
+            ) {
+                URL.revokeObjectURL(
+                    updatedImageUrls[
+                        messageIndex
+                    ]
+                );
+            }
+
+
+            updatedImageUrls[
+                messageIndex
+            ] = imageUrl;
+
 
             setImageUrls(
                 updatedImageUrls
             );
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                error
+            );
 
             setErrorMessage(
-                "Nu am putut genera imaginea. " +
-                "Verifica terminalul backendului."
+                "Nu am putut genera imaginea. "
+                + "Verifica terminalul backendului."
             );
 
         } finally {
-            setImageLoadingIndex(null);
+            setImageLoadingIndex(
+                null
+            );
         }
     }
 
+    function handleOpenSettings() {
+        setSettingsOpen(true);
+    }
+
+
+    function handleCloseSettings() {
+        setSettingsOpen(false);
+    }
+
+
+    function handleVoiceChange(newVoice) {
+        setSettings(
+            function (currentSettings) {
+                return {
+                    ...currentSettings,
+                    ttsVoice: newVoice
+                };
+            }
+        );
+    }
+
+
+    function handleSaveHistoryChange(
+        shouldSaveHistory
+    ) {
+        setSettings(
+            function (currentSettings) {
+                return {
+                    ...currentSettings,
+                    saveHistory:
+                        shouldSaveHistory
+                };
+            }
+        );
+    }
+
+
+    function handleClearHistory() {
+        resetGeneratedMedia();
+
+        setChats([]);
+
+        setActiveChatId(null);
+
+        setMessage("");
+
+        setErrorMessage("");
+
+        localStorage.removeItem(
+            CHATS_STORAGE_KEY
+        );
+    }
+
+    const applicationIsBusy =
+    isLoading
+    || isRecording
+    || isTranscribing;
+
+    const conversationStarted =
+        activeChat !== null;
+
 
     return (
-        <main className="application-page">
-            <section className="application-shell">
-                <aside className="sidebar">
-                    <div>
-                        <div className="brand-area">
-                            <div className="brand-icon">
-                                📚
-                            </div>
+        <main className="app">
+            <Sidebar
+                chats={chats}
+                activeChatId={
+                    activeChatId
+                }
+                onNewChat={
+                    handleNewChat
+                }
+                onChatSelect={
+                    handleChatSelect
+                }
+                onSettingsClick={
+                    handleOpenSettings
+                }
+                isLoading={
+                    applicationIsBusy
+                }
+            />
 
-                            <div>
-                                <p className="brand-label">
-                                    AI BOOK ASSISTANT
-                                </p>
+            <section className="main-area">
+                <header className="top-bar">
+                    <div className="top-bar-status">
+                        <span className="status-dot">
+                        </span>
 
-                                <h1>Smart Librarian</h1>
-                            </div>
-                        </div>
-
-                        <p className="sidebar-description">
-                            Descopera carti pe baza temelor,
-                            genurilor si povestilor care te
-                            intereseaza.
-                        </p>
+                        <span>
+                            {activeChat !== null
+                                ? activeChat.title
+                                : "Smart Librarian"}
+                        </span>
                     </div>
 
-                    <div className="technology-section">
-                        <p className="section-label">
-                            TEHNOLOGII
-                        </p>
+                    <span className="top-bar-badge">
+                        RAG + AI
+                    </span>
+                </header>
 
-                        <div className="technology-list">
-                            <span>React</span>
-                            <span>FastAPI</span>
-                            <span>OpenAI</span>
-                            <span>ChromaDB</span>
-                        </div>
-                    </div>
-
-                    <div className="example-section">
-                        <p className="section-label">
-                            EXEMPLE DE INTREBARI
-                        </p>
-
-                        <div className="example-list">
-                            {SAMPLE_QUESTIONS.map(
-                                function (question, index) {
-                                    return (
-                                        <button
-                                            key={index}
-                                            type="button"
-                                            className="example-button"
-                                            onClick={function () {
-                                                handleExampleClick(
-                                                    question
-                                                );
-                                            }}
-                                            disabled={isLoading}
-                                        >
-                                            <span>
-                                                {question}
-                                            </span>
-
-                                            <span
-                                                className="example-arrow"
-                                            >
-                                                →
-                                            </span>
-                                        </button>
-                                    );
+                <div className="content-area">
+                    {conversationStarted
+                        === false
+                        ? (
+                            <WelcomeScreen
+                                onExampleClick={
+                                    handleExampleClick
                                 }
-                            )}
-                        </div>
-                    </div>
-
-                    <p className="sidebar-footer">
-                        RAG + Tool Calling
-                    </p>
-                </aside>
-
-                <section className="chat-panel">
-                    <header className="chat-header">
-                        <div>
-                            <p className="chat-header-label">
-                                CONVERSATIE
-                            </p>
-
-                            <h2>
-                                Recomandari personalizate
-                            </h2>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="clear-button"
-                            onClick={clearConversation}
-                            disabled={isLoading}
-                        >
-                            Conversatie noua
-                        </button>
-                    </header>
-
-                    <section className="messages-container">
-                        {messages.map(
-                            function (
-                                chatMessage,
-                                index
-                            ) {
-                                const messageClassName =
-                                    chatMessage.sender ===
-                                    "user"
-                                        ? "message-row user-row"
-                                        : "message-row assistant-row";
-
-                                const bubbleClassName =
-                                    chatMessage.sender ===
-                                    "user"
-                                        ? "message-bubble user-bubble"
-                                        : "message-bubble assistant-bubble";
-
-                                const senderName =
-                                    chatMessage.sender ===
-                                    "user"
-                                        ? "TU"
-                                        : "SMART LIBRARIAN";
-
-                                const canGenerateMedia =
-                                    chatMessage.sender
-                                        === "assistant"
-                                    && index > 0;
-
-                                return (
-                                    <article
-                                        key={index}
-                                        className={
-                                            messageClassName
-                                        }
-                                    >
-                                        <div
-                                            className={
-                                                bubbleClassName
-                                            }
-                                        >
-                                            <p className="sender-name">
-                                                {senderName}
-                                            </p>
-
-                                            <p className="message-text">
-                                                {chatMessage.text}
-                                            </p>
-
-                                            {canGenerateMedia === true && (
-                                                <div className="message-actions">
-                                                    <button
-                                                        type="button"
-                                                        className="message-action-button"
-                                                        disabled={
-                                                            audioLoadingIndex
-                                                            !== null
-                                                        }
-                                                        onClick={
-                                                            function () {
-                                                                handleAudioClick(
-                                                                    index,
-                                                                    chatMessage.text
-                                                                );
-                                                            }
-                                                        }
-                                                    >
-                                                        {
-                                                            audioLoadingIndex
-                                                            === index
-                                                                ? "Se genereaza audio..."
-                                                                : "Asculta raspunsul"
-                                                        }
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        className="message-action-button"
-                                                        disabled={
-                                                            imageLoadingIndex
-                                                            !== null
-                                                        }
-                                                        onClick={
-                                                            function () {
-                                                                handleImageClick(
-                                                                    index,
-                                                                    chatMessage.text
-                                                                );
-                                                            }
-                                                        }
-                                                    >
-                                                        {
-                                                            imageLoadingIndex
-                                                            === index
-                                                                ? "Se genereaza imaginea..."
-                                                                : "Genereaza imagine"
-                                                        }
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {
-                                                audioUrls[index]
-                                                !== undefined
-                                                && (
-                                                    <audio
-                                                        className="audio-player"
-                                                        controls
-                                                        src={
-                                                            audioUrls[index]
-                                                        }
-                                                    >
-                                                        Browserul nu poate reda
-                                                        fisierul audio.
-                                                    </audio>
-                                                )
-                                            }
-
-                                            {
-                                                imageUrls[index]
-                                                !== undefined
-                                                && (
-                                                    <div className="generated-image-container">
-                                                        <p className="generated-image-label">
-                                                            ILUSTRATIE GENERATA
-                                                        </p>
-
-                                                        <img
-                                                            className="generated-book-image"
-                                                            src={
-                                                                imageUrls[index]
-                                                            }
-                                                            alt="Ilustratie generata pentru cartea recomandata"
-                                                        />
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                    </article>
-                                );
-                            }
-                        )}
-
-                        {isLoading === true && (
-                            <article className="message-row assistant-row">
-                                <div className="message-bubble assistant-bubble loading-bubble">
-                                    <p className="sender-name">
-                                        SMART LIBRARIAN
-                                    </p>
-
-                                    <div className="loading-content">
-                                        <span className="loading-dot">
-                                        </span>
-
-                                        <span className="loading-dot">
-                                        </span>
-
-                                        <span className="loading-dot">
-                                        </span>
-
-                                        <span>
-                                            Caut o recomandare...
-                                        </span>
-                                    </div>
-                                </div>
-                            </article>
-                        )}
-                    </section>
-
-                    <footer className="composer-area">
-                        {errorMessage !== "" && (
-                            <div className="error-message">
-                                {errorMessage}
-                            </div>
-                        )}
-
-                        <form
-                            className="message-form"
-                            onSubmit={handleSubmit}
-                        >
-                            <label
-                                htmlFor="book-question"
-                                className="visually-hidden"
-                            >
-                                Intrebarea despre carte
-                            </label>
-
-                            <textarea
-                                id="book-question"
-                                value={message}
-                                onChange={handleMessageChange}
-                                placeholder="Descrie ce fel de carte cauti..."
-                                rows="3"
-                                disabled={isLoading}
                             />
+                        )
+                        : (
+                            <MessageList
+                                messages={
+                                    messages
+                                }
+                                isLoading={
+                                    isLoading
+                                }
+                                audioUrls={
+                                    audioUrls
+                                }
+                                imageUrls={
+                                    imageUrls
+                                }
+                                audioLoadingIndex={
+                                    audioLoadingIndex
+                                }
+                                imageLoadingIndex={
+                                    imageLoadingIndex
+                                }
+                                onAudioClick={
+                                    handleAudioClick
+                                }
+                                onImageClick={
+                                    handleImageClick
+                                }
+                            />
+                        )
+                    }
+                </div>
 
-                            <button
-                                type="submit"
-                                className="send-button"
-                                disabled={isLoading}
-                            >
-                                {isLoading === true
-                                    ? "Se proceseaza"
-                                    : "Trimite"}
-                            </button>
-                        </form>
-
-                        <p className="composer-note">
-                            Audio si imaginile sunt generate
-                            numai atunci cand apesi butoanele.
-                        </p>
-                    </footer>
-                </section>
+                <ChatInput
+                    message={
+                        message
+                    }
+                    onMessageChange={
+                        handleMessageChange
+                    }
+                    onSubmit={
+                        handleSubmit
+                    }
+                    onMicrophoneClick={
+                        handleMicrophoneClick
+                    }
+                    isLoading={
+                        isLoading
+                    }
+                    isRecording={
+                        isRecording
+                    }
+                    isTranscribing={
+                        isTranscribing
+                    }
+                    errorMessage={
+                        errorMessage
+                    }
+                />
             </section>
+
+
+            <SettingsModal
+                isOpen={
+                    settingsOpen
+                }
+                ttsVoice={
+                    settings.ttsVoice
+                }
+                saveHistory={
+                    settings.saveHistory
+                }
+                onVoiceChange={
+                    handleVoiceChange
+                }
+                onSaveHistoryChange={
+                    handleSaveHistoryChange
+                }
+                onClearHistory={
+                    handleClearHistory
+                }
+                onClose={
+                    handleCloseSettings
+                }
+            />
         </main>
     );
 }

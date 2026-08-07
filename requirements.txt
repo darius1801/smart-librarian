@@ -2,3 +2,4 @@ openai
 chromadb
 fastapi
 uvicorn
+python-multipart
