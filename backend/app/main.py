@@ -94,10 +94,7 @@ def chat(chat_request: ChatRequest):
 def text_to_speech(
     speech_request: TextToSpeechRequest
 ):
-    """
-    Primeste text si returneaza
-    un fisier audio MP3.
-    """
+   
 
     text = speech_request.text
     voice = speech_request.voice
@@ -139,10 +136,7 @@ def text_to_speech(
 def generate_book_image(
     image_request: ImageGenerationRequest
 ):
-    """
-    Primeste recomandarea unei carti si returneaza
-    o imagine PNG inspirata de aceasta.
-    """
+   
 
     recommendation_text = image_request.text
 
@@ -212,7 +206,7 @@ async def transcribe_audio(
                 )
             )
 
-        # Transcriem audio.
+      
        
         transcription_text = (
             transcribe_audio_bytes(

@@ -20,7 +20,6 @@ CHAT_MODEL = "gpt-4o-mini"
 NUMBER_OF_RETRIEVED_BOOKS = 3
 
 
-# Define the tool for retrieving book summaries by title. This tool will be used by the GPT model to fetch the complete summary of a book based on its exact title.
 BOOK_SUMMARY_TOOLS = [
     {
         "type": "function",
@@ -51,35 +50,17 @@ BOOK_SUMMARY_TOOLS = [
 
 
 def recommend_book_with_summary(user_question):
-    """
-    Gaseste carti folosind RAG, cere modelului sa aleaga
-    o carte, executa tool-ul get_summary_by_title si
-    returneaza raspunsul final.
-    """
-
-    # ---------------------------------------------------------
-    # PASUL 1: Verificam daca intrebarea a fost primita.
-    # ---------------------------------------------------------
+    
 
     if user_question is None:
         return "Eroare: intrebarea nu a fost primita."
 
-    # ---------------------------------------------------------
-    # PASUL 2: Curatam intrebarea.
-    # ---------------------------------------------------------
-
     cleaned_question = user_question.strip()
 
-    # ---------------------------------------------------------
-    # PASUL 3: Verificam daca intrebarea este goala.
-    # ---------------------------------------------------------
 
     if cleaned_question == "":
         return "Eroare: intrebarea nu poate fi goala."
 
-    # ---------------------------------------------------------
-    # PASUL 4: Verificam limbajul nepotrivit.
-    # ---------------------------------------------------------
 
     contains_bad_language = contains_inappropriate_language(
         cleaned_question
@@ -106,9 +87,6 @@ def recommend_book_with_summary(user_question):
     if api_key.strip() == "":
         return "Eroare: variabila OPENAI_API_KEY este goala."
 
-        # ---------------------------------------------------------
-    # PASUL 5: Clasificam intentia utilizatorului.
-    # ---------------------------------------------------------
 
     print()
     print("Clasificam intentia utilizatorului.")
@@ -122,9 +100,6 @@ def recommend_book_with_summary(user_question):
         user_intent
     )
 
-    # ---------------------------------------------------------
-    # PASUL 6: Blocam mesajele care nu sunt despre carti.
-    # ---------------------------------------------------------
 
     if user_intent == OTHER:
         print()
@@ -245,8 +220,6 @@ def recommend_book_with_summary(user_question):
             "Check the terminal for details."
         )
 
-    # Modelul poate returna mai multe obiecte in response.output.
-    # Unul dintre acestea trebuie sa fie function_call.
     input_list = input_list + first_response.output
 
     tool_was_called = False
