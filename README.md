@@ -1,61 +1,61 @@
 # Smart Librarian
 
-Smart Librarian este un proiect de chatbot pentru recomandari de carti.
+Smart Librarian is a chatbot project for book recommendations.
 
-Ideea principala este simpla: utilizatorul spune ce fel de carte cauta, aplicatia cauta semantic in baza locala de carti, alege o recomandare si apoi foloseste un tool separat pentru a lua rezumatul complet al cartii.
+The main idea is simple: the user describes what kind of book they are looking for, the application performs a semantic search in the local book database, selects a recommendation, and then uses a separate tool to retrieve the full summary of the book.
 
-Proiectul foloseste React pentru frontend si FastAPI pentru backend.
+The project uses React for the frontend and FastAPI for the backend.
 
-## Ce poate face aplicatia
+## What the application can do
 
-- recomanda carti dupa teme, genuri sau preferinte;
-- raspunde la intrebari despre cartile din biblioteca, de exemplu `Ce este 1984?`;
-- refuza intrebarile care nu au legatura cu cartile;
-- foloseste RAG cu ChromaDB pentru cautare semantica;
-- foloseste tool calling pentru `get_summary_by_title()`;
-- blocheaza local unele mesaje cu limbaj nepotrivit;
-- poate transforma raspunsul in audio;
-- poate genera o imagine inspirata de cartea recomandata;
-- poate inregistra vocea utilizatorului si transforma audio in text;
-- pastreaza conversatiile in `localStorage`;
-- are New Chat, Recent Chats si Settings;
-- permite alegerea vocii pentru Text to Speech.
+* recommend books based on themes, genres, or preferences;
+* answer questions about books available in the library, for example `What is 1984?`;
+* reject questions that are unrelated to books;
+* use RAG with ChromaDB for semantic search;
+* use tool calling for `get_summary_by_title()`;
+* locally block certain messages containing inappropriate language;
+* convert responses into audio;
+* generate an image inspired by the recommended book;
+* record the user's voice and convert audio into text;
+* store conversations in `localStorage`;
+* provide New Chat, Recent Chats, and Settings functionality;
+* allow the user to choose the Text-to-Speech voice.
 
-Aplicatia este gandita pentru desktop. Nu am implementat varianta pentru telefon si nici sistem de login/register.
+The application is designed for desktop use. A mobile version and a login/register system have not been implemented.
 
 ---
 
-## Tehnologii folosite
+## Technologies used
 
 ### Backend
 
-- Python
-- FastAPI
-- OpenAI API
-- ChromaDB
+* Python
+* FastAPI
+* OpenAI API
+* ChromaDB
 
 ### Frontend
 
-- React
-- Vite
-- JavaScript
-- CSS
-- lucide-react pentru iconuri
+* React
+* Vite
+* JavaScript
+* CSS
+* lucide-react for icons
 
-### Modele folosite in proiect
+### Models used in the project
 
-- `text-embedding-3-small` - embeddings pentru cautarea semantica;
-- `gpt-4o-mini` - recomandarea si raspunsul principal;
-- `gpt-5-nano` - clasificarea intentiei utilizatorului;
-- `gpt-4o-mini-tts` - Text to Speech;
-- `gpt-4o-mini-transcribe` - Speech to Text;
-- `gpt-image-2` - generarea imaginilor.
+* `text-embedding-3-small` - embeddings for semantic search;
+* `gpt-4o-mini` - book recommendation and main response generation;
+* `gpt-5-nano` - user intent classification;
+* `gpt-4o-mini-tts` - Text to Speech;
+* `gpt-4o-mini-transcribe` - Speech to Text;
+* `gpt-image-2` - image generation.
 
-Daca modelele sunt schimbate ulterior in cod, aceasta lista trebuie actualizata.
+If the models are changed later in the code, this list should be updated.
 
 ---
 
-## Structura principala a proiectului
+## Main project structure
 
 ```text
 smart-librarian/
@@ -77,7 +77,7 @@ smart-librarian/
 |   |   |-- book_summaries.json
 |   |
 |   |-- scripts/
-|       |-- fisierele de test
+|       |-- test files
 |
 |-- frontend/
 |   |-- src/
@@ -102,115 +102,115 @@ smart-librarian/
 |-- README.md
 ```
 
-Numele componentei Settings trebuie sa corespunda importului din `App.jsx`. In versiunea curenta poate fi `Settings.jsx` daca importul este `./components/Settings`.
+The name of the Settings component must match the import used in `App.jsx`. In the current version, it can be `Settings.jsx` if the import is `./components/Settings`.
 
 ---
 
-# Backend - ce face fiecare fisier
+# Backend - what each file does
 
 ## `backend/app/main.py`
 
-Acesta este punctul principal al backendului FastAPI.
+This is the main entry point of the FastAPI backend.
 
-Aici este creat obiectul:
+The following object is created here:
 
 ```python
 app = FastAPI(...)
 ```
 
-Tot aici sunt definite endpointurile folosite de React.
+The endpoints used by React are also defined in this file.
 
-Cele mai importante sunt:
+The most important ones are:
 
-- `GET /health` - verifica daca backendul functioneaza;
-- `POST /api/chat` - trimite o intrebare catre chatbot;
-- `POST /api/tts` - transforma textul in audio;
-- `POST /api/generate-image` - genereaza o imagine;
-- `POST /api/transcribe` - transforma o inregistrare audio in text.
+* `GET /health` - checks whether the backend is running;
+* `POST /api/chat` - sends a question to the chatbot;
+* `POST /api/tts` - converts text into audio;
+* `POST /api/generate-image` - generates an image;
+* `POST /api/transcribe` - converts an audio recording into text.
 
-In acest fisier exista si clase Pydantic simple pentru requesturi si raspunsuri, de exemplu:
+This file also contains simple Pydantic classes for requests and responses, for example:
 
-- `ChatRequest` - primeste mesajul utilizatorului;
-- `ChatResponse` - returneaza raspunsul chatbotului si informatia daca pot fi generate media;
-- `TextToSpeechRequest` - primeste textul si vocea pentru TTS;
-- `ImageGenerationRequest` - primeste textul folosit pentru generarea imaginii;
-- `TranscriptionResponse` - returneaza textul obtinut din Speech to Text.
+* `ChatRequest` - receives the user's message;
+* `ChatResponse` - returns the chatbot response and information about whether media can be generated;
+* `TextToSpeechRequest` - receives the text and selected voice for TTS;
+* `ImageGenerationRequest` - receives the text used for image generation;
+* `TranscriptionResponse` - returns the text obtained through Speech to Text.
 
-`main.py` configureaza si CORS pentru ca frontendul React de pe portul 5173 sa poata comunica cu FastAPI de pe portul 8000.
+`main.py` also configures CORS so that the React frontend running on port 5173 can communicate with FastAPI running on port 8000.
 
 ## `backend/app/retrieval.py`
 
-Aici se face cautarea semantica in ChromaDB.
+This file handles semantic search in ChromaDB.
 
-Functia principala este:
+The main function is:
 
 ```python
 search_books(...)
 ```
 
-Flow-ul este:
+The flow is:
 
 ```text
-intrebarea utilizatorului
+user question
         |
         v
 OpenAI embeddings
         |
         v
-vector pentru intrebare
+vector representation of the question
         |
         v
 ChromaDB
         |
         v
-cele mai apropiate carti
+most similar books
 ```
 
-Modelul de embeddings folosit in proiect este `text-embedding-3-small`.
+The embedding model used in the project is `text-embedding-3-small`.
 
 ## `backend/app/rag_chat.py`
 
-Contine logica folosita pentru construirea contextului RAG.
+This file contains the logic used to build the RAG context.
 
-Functia importanta este:
+The important function is:
 
 ```python
 build_books_context(...)
 ```
 
-Ea transforma cartile recuperate din ChromaDB intr-un text care poate fi trimis modelului.
+It transforms the books retrieved from ChromaDB into text that can be sent to the model.
 
-Fisierul contine si varianta simpla de recomandare prin RAG folosita in timpul dezvoltarii.
+The file also contains the simple RAG-based recommendation version used during development.
 
 ## `backend/app/book_tools.py`
 
-Contine tool-ul cerut in proiect:
+This file contains the tool required by the project:
 
 ```python
 get_summary_by_title(title)
 ```
 
-Functia citeste `book_summaries.json`, cauta titlul exact si returneaza rezumatul complet.
+The function reads `book_summaries.json`, searches for the exact book title, and returns the complete summary.
 
-Aceasta functie este inregistrata ca tool pentru modelul OpenAI in `tool_chat.py`.
+This function is registered as a tool for the OpenAI model in `tool_chat.py`.
 
 ## `backend/app/tool_chat.py`
 
-Acesta este unul dintre cele mai importante fisiere din proiect.
+This is one of the most important files in the project.
 
-Aici se leaga:
+It connects:
 
-- safety filter;
-- intent classifier;
-- RAG;
-- modelul GPT;
-- tool calling;
-- rezumatul complet.
+* the safety filter;
+* the intent classifier;
+* RAG;
+* the GPT model;
+* tool calling;
+* the complete book summary.
 
-Flow-ul principal este aproximativ:
+The main flow is approximately:
 
 ```text
-mesaj utilizator
+user message
       |
       v
 safety filter
@@ -218,13 +218,13 @@ safety filter
       v
 intent classifier
       |
-      +---- OTHER ----> refuz politicos
+      +---- OTHER ----> polite refusal
       |
       v
-retrieval din ChromaDB
+retrieval from ChromaDB
       |
       v
-context RAG
+RAG context
       |
       v
 OpenAI
@@ -233,10 +233,10 @@ OpenAI
 get_summary_by_title()
       |
       v
-raspuns final
+final response
 ```
 
-Intentiile folosite sunt:
+The intents used are:
 
 ```text
 BOOK_RECOMMENDATION
@@ -244,17 +244,17 @@ BOOK_INFO
 OTHER
 ```
 
-`BOOK_RECOMMENDATION` este pentru cereri de recomandare.
+`BOOK_RECOMMENDATION` is used for recommendation requests.
 
-`BOOK_INFO` este pentru intrebari de tipul `Ce este 1984?`.
+`BOOK_INFO` is used for questions such as `What is 1984?`.
 
-`OTHER` este pentru lucruri precum vreme, matematica, programare etc.
+`OTHER` is used for topics such as weather, mathematics, programming, etc.
 
-Exista si o varianta care returneaza metadata pentru API, de exemplu `can_generate_media`, astfel incat butoanele pentru audio si imagine sa nu apara la raspunsurile off-topic.
+There is also a version that returns metadata for the API, such as `can_generate_media`, so that the audio and image buttons are not displayed for off-topic responses.
 
 ## `backend/app/intent_classifier.py`
 
-Acest fisier clasifica mesajul utilizatorului in una dintre cele trei categorii:
+This file classifies the user's message into one of three categories:
 
 ```text
 BOOK_RECOMMENDATION
@@ -262,215 +262,215 @@ BOOK_INFO
 OTHER
 ```
 
-Pentru aceasta clasificare este folosit un model mic, deoarece taskul este simplu.
+A small model is used for this classification because the task is relatively simple.
 
-Exemple:
+Examples:
 
 ```text
-Vreau ceva despre magie.
+I want something about magic.
 -> BOOK_RECOMMENDATION
 
-Ce este Dune?
+What is Dune?
 -> BOOK_INFO
 
-Care este vremea azi?
+What is the weather today?
 -> OTHER
 ```
 
 ## `backend/app/safety.py`
 
-Contine filtrul local pentru limbaj nepotrivit.
+This file contains the local filter for inappropriate language.
 
-Important este ca filtrul ruleaza inainte ca mesajul sa ajunga la model.
+An important aspect is that the filter runs before the message reaches the model.
 
-Daca este detectat un cuvant blocat, aplicatia returneaza un raspuns politicos fara sa faca retrieval sau requestul principal catre model.
+If a blocked word is detected, the application returns a polite response without performing retrieval or sending the main request to the model.
 
 ## `backend/app/tts_service.py`
 
-Se ocupa de Text to Speech.
+This file handles Text to Speech.
 
-Primeste:
+It receives:
 
 ```text
 text + voice
 ```
 
-si genereaza un fisier MP3 in:
+and generates an MP3 file in:
 
 ```text
 backend/generated_audio/
 ```
 
-Din Settings utilizatorul poate alege una dintre vocile puse in proiect, de exemplu Coral, Marin, Cedar sau Nova.
+From Settings, the user can select one of the voices included in the project, such as Coral, Marin, Cedar, or Nova.
 
-Folderul cu audio generat este ignorat de Git.
+The generated audio folder is ignored by Git.
 
 ## `backend/app/image_service.py`
 
-Se ocupa de generarea unei ilustratii inspirate de carte.
+This file handles the generation of an illustration inspired by the book.
 
-Frontendul trimite raspunsul despre carte, backendul construieste un prompt si foloseste modelul de image generation.
+The frontend sends the response about the book, the backend builds a prompt, and then uses the image generation model.
 
-Imaginea este salvata temporar/local in:
+The image is stored temporarily/locally in:
 
 ```text
 backend/generated_images/
 ```
 
-Folderul este ignorat de Git.
+The folder is ignored by Git.
 
 ## `backend/app/transcription_service.py`
 
-Se ocupa de Speech to Text.
+This file handles Speech to Text.
 
-React inregistreaza microfonul, trimite fisierul audio la FastAPI, iar acest serviciu trimite fisierul catre modelul de transcriere.
+React records the user's microphone input and sends the audio file to FastAPI. This service then sends the file to the transcription model.
 
-Rezultatul este textul care apare in composer.
+The result is the text that appears in the composer.
 
-Fisierul audio folosit pentru transcriere este temporar si este sters dupa procesare.
+The audio file used for transcription is temporary and is deleted after processing.
 
 ---
 
-# Scripturi importante
+# Important scripts
 
 ## `backend/scripts/ingest_books.py`
 
-Citeste cartile din:
+This script reads the books from:
 
 ```text
 backend/data/book_summaries.json
 ```
 
-genereaza embeddings si le salveaza in ChromaDB.
+generates embeddings, and stores them in ChromaDB.
 
-Acest script trebuie rulat la prima configurare a proiectului sau daca baza Chroma este stearsa.
+This script must be run during the initial project setup or if the Chroma database is deleted.
 
 ## `backend/scripts/search_books.py`
 
-Script simplu pentru testarea directa a cautarii semantice.
+A simple script used for directly testing semantic search.
 
 ## `backend/scripts/chat_cli.py`
 
-Permite folosirea chatbotului direct din terminal, fara React.
+Allows the chatbot to be used directly from the terminal without React.
 
-Este util pentru testarea backendului separat de frontend.
+It is useful for testing the backend independently from the frontend.
 
-## Scripturile `test_*.py`
+## `test_*.py` scripts
 
-Au fost folosite pe parcursul dezvoltarii pentru a testa separat:
+These scripts were used during development to independently test:
 
-- tool-ul de rezumat;
-- retrieval-ul;
-- safety filter;
-- intent classifier;
-- alte componente backend.
+* the summary tool;
+* retrieval;
+* the safety filter;
+* the intent classifier;
+* other backend components.
 
 ---
 
-# Frontend - ce face fiecare componenta
+# Frontend - what each component does
 
 ## `frontend/src/App.jsx`
 
-Este componenta principala React.
+This is the main React component.
 
-Aici este pastrat state-ul principal al aplicatiei:
+The main application state is stored here:
 
-- mesajul din composer;
-- lista de chat-uri;
-- chat-ul activ;
-- loading state;
-- audio si imagini generate;
-- Speech to Text;
-- Settings.
+* the message in the composer;
+* the list of chats;
+* the active chat;
+* loading state;
+* generated audio and images;
+* Speech to Text;
+* Settings.
 
-Tot aici sunt apelurile `fetch()` catre FastAPI.
+The `fetch()` calls to FastAPI are also handled here.
 
-Conversațiile sunt pastrate in `localStorage` pentru modul Guest.
+Conversations are stored in `localStorage` for Guest Mode.
 
 ## `Sidebar.jsx`
 
-Contine meniul din stanga.
+Contains the menu on the left side.
 
-Include:
+It includes:
 
-- Smart Librarian;
-- New Chat;
-- Recent Chats;
-- Settings;
-- Guest Mode.
+* Smart Librarian;
+* New Chat;
+* Recent Chats;
+* Settings;
+* Guest Mode.
 
-Cand este selectat un chat vechi, `Sidebar` trimite ID-ul catre `App.jsx`.
+When an older chat is selected, `Sidebar` sends its ID to `App.jsx`.
 
 ## `WelcomeScreen.jsx`
 
-Este ecranul afisat atunci cand nu exista un chat activ.
+This is the screen displayed when there is no active chat.
 
-Contine:
+It contains:
 
-- salutul Smart Librarian;
-- descrierea aplicatiei;
-- exemple de intrebari;
-- cardurile cu sugestii precum magie, distopie, razboi sau supravietuire.
+* the Smart Librarian greeting;
+* the application description;
+* example questions;
+* suggestion cards for topics such as magic, dystopia, war, or survival.
 
 ## `ChatInput.jsx`
 
-Este zona unde utilizatorul scrie mesajul.
+This is the area where the user writes a message.
 
-Contine:
+It contains:
 
-- textarea;
-- buton Send;
-- buton pentru microfon;
-- starile de recording si transcription.
+* textarea;
+* Send button;
+* microphone button;
+* recording and transcription states.
 
-Comenzi:
+Commands:
 
 ```text
-Enter          -> trimite mesajul
-Shift + Enter  -> rand nou
+Enter          -> send message
+Shift + Enter  -> new line
 ```
 
 ## `MessageList.jsx`
 
-Afiseaza mesajele conversatiei.
+Displays the conversation messages.
 
-Pentru raspunsurile valide despre carti poate afisa:
+For valid book-related responses, it can display:
 
-- buton `Asculta`;
-- buton `Vizualizeaza`;
-- player audio;
-- imaginea generata.
+* `Listen` button;
+* `Visualize` button;
+* audio player;
+* generated image.
 
-Tot aici se face si auto-scroll catre ultimul mesaj.
+Auto-scroll to the latest message is also handled here.
 
 ## `Settings.jsx` / `SettingsModal.jsx`
 
-Contine modalul Settings.
+Contains the Settings modal.
 
-Setarile actuale includ:
+Current settings include:
 
-- vocea pentru Text to Speech;
-- activarea/dezactivarea salvarii istoricului;
-- stergerea istoricului local.
+* Text-to-Speech voice;
+* enabling/disabling chat history storage;
+* deleting local chat history.
 
-Setarile sunt salvate separat in `localStorage`.
+The settings are stored separately in `localStorage`.
 
 ## `App.css`
 
-Contine stilurile aplicatiei.
+Contains the application styles.
 
-Designul este facut pentru desktop si foloseste o tema dark cu accente mov.
+The design is made for desktop and uses a dark theme with purple accents.
 
-Nu exista varianta mobile in proiect.
+There is currently no mobile version of the project.
 
 ---
 
-# Cum functioneaza un request normal
+# How a normal request works
 
-Exemplu:
+Example:
 
 ```text
-Vreau o carte despre libertate si control social.
+I want a book about freedom and social control.
 ```
 
 Flow:
@@ -497,19 +497,19 @@ OpenAI Embeddings
 ChromaDB
   |
   v
-Top carti relevante
+Top relevant books
   |
   v
-GPT + context RAG
+GPT + RAG context
   |
   v
 Tool call: get_summary_by_title()
   |
   v
-Rezumat complet
+Complete summary
   |
   v
-Raspuns final
+Final response
   |
   v
 React
@@ -517,45 +517,45 @@ React
 
 ---
 
-# Instalarea proiectului
+# Project installation
 
-Comenzile de mai jos sunt pentru Windows PowerShell.
+The commands below are intended for Windows PowerShell.
 
-## 1. Deschide proiectul
+## 1. Open the project
 
-Din terminal trebuie sa fii in folderul:
+In the terminal, you should be inside the folder:
 
 ```text
 smart-librarian
 ```
 
-Exemplu:
+Example:
 
 ```powershell
-cd "C:\cale\catre\smart-librarian"
+cd "C:\path\to\smart-librarian"
 ```
 
-## 2. Creeaza virtual environment
+## 2. Create a virtual environment
 
-Daca `.venv` nu exista deja:
+If `.venv` does not already exist:
 
 ```powershell
 py -m venv .venv
 ```
 
-Activeaza-l:
+Activate it:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-## 3. Instaleaza dependintele Python
+## 3. Install Python dependencies
 
 ```powershell
 py -m pip install -r requirements.txt
 ```
 
-`requirements.txt` trebuie sa contina cel putin dependintele folosite de backend, de exemplu:
+`requirements.txt` should contain at least the dependencies used by the backend, for example:
 
 ```text
 openai
@@ -565,34 +565,34 @@ uvicorn
 python-multipart
 ```
 
-## 4. Creeaza fisierul `.env`
+## 4. Create the `.env` file
 
-In radacina proiectului trebuie sa existe:
+The project root must contain:
 
 ```text
 .env
 ```
 
-cu variabila:
+with the following variable:
 
 ```text
-OPENAI_API_KEY=cheia_ta_openai
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-Nu urca `.env` pe Git.
+Do not upload `.env` to Git.
 
-Fisierul trebuie sa fie inclus in `.gitignore`.
+The file should be included in `.gitignore`.
 
-## 5. Instaleaza frontendul
+## 5. Install the frontend
 
-Din radacina proiectului:
+From the project root:
 
 ```powershell
 cd frontend
 npm.cmd install
 ```
 
-Apoi revino in proiect:
+Then return to the project root:
 
 ```powershell
 cd ..
@@ -600,53 +600,53 @@ cd ..
 
 ---
 
-# Initializarea ChromaDB
+# Initializing ChromaDB
 
-La prima rulare trebuie create embeddings pentru cartile din JSON.
+During the first run, embeddings must be created for the books stored in the JSON file.
 
-Din radacina proiectului, cu `.venv` activ:
+From the project root, with `.venv` activated:
 
 ```powershell
 py -m backend.scripts.ingest_books
 ```
 
-Aceasta comanda creeaza baza locala Chroma in:
+This command creates the local Chroma database in:
 
 ```text
 backend/chroma_data/
 ```
 
-Folderul este ignorat de Git.
+The folder is ignored by Git.
 
-Daca baza Chroma este stearsa, ruleaza din nou comanda de ingestie.
+If the Chroma database is deleted, run the ingestion command again.
 
 ---
 
-# Cum se ruleaza aplicatia
+# Running the application
 
-Ai nevoie de doua terminale.
+You need two terminals.
 
 ## Terminal 1 - Backend
 
-Din radacina proiectului:
+From the project root:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Porneste FastAPI:
+Start FastAPI:
 
 ```powershell
 py -m uvicorn backend.app.main:app --reload
 ```
 
-Backendul va fi disponibil la:
+The backend will be available at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger / documentatia endpointurilor:
+Swagger / endpoint documentation:
 
 ```text
 http://127.0.0.1:8000/docs
@@ -660,42 +660,42 @@ http://127.0.0.1:8000/health
 
 ## Terminal 2 - Frontend
 
-Din radacina proiectului:
+From the project root:
 
 ```powershell
 cd frontend
 npm.cmd run dev
 ```
 
-Vite va afisa adresa aplicatiei, in mod normal:
+Vite will display the application address, usually:
 
 ```text
 http://localhost:5173
 ```
 
-Deschide aceasta adresa in browser.
+Open this address in your browser.
 
 ---
 
-# Varianta scurta pentru rulare
+# Short version for running the project
 
-Daca proiectul este deja instalat si ChromaDB este initializat:
+If the project is already installed and ChromaDB has been initialized:
 
-### Terminal backend
+### Backend terminal
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 py -m uvicorn backend.app.main:app --reload
 ```
 
-### Terminal frontend
+### Frontend terminal
 
 ```powershell
 cd frontend
 npm.cmd run dev
 ```
 
-Apoi:
+Then open:
 
 ```text
 http://localhost:5173
@@ -703,22 +703,22 @@ http://localhost:5173
 
 ---
 
-# Rulare doar din terminal
+# Running only from the terminal
 
-Chatbotul poate fi testat si fara React:
+The chatbot can also be tested without React:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 py -m backend.scripts.chat_cli
 ```
 
-Pentru iesire:
+To exit:
 
 ```text
 exit
 ```
 
-sau:
+or:
 
 ```text
 quit
@@ -726,139 +726,139 @@ quit
 
 ---
 
-# Build frontend
+# Frontend build
 
-Pentru a verifica daca frontendul se compileaza corect:
+To verify that the frontend compiles correctly:
 
 ```powershell
 cd frontend
 npm.cmd run build
 ```
 
-Daca totul este corect, Vite creeaza:
+If everything is correct, Vite creates:
 
 ```text
 frontend/dist/
 ```
 
-Acest folder nu trebuie urcat pe Git.
+This folder should not be uploaded to Git.
 
 ---
 
-# Exemple de intrebari
+# Example questions
 
 ```text
-Vreau o carte despre libertate si control social.
+I want a book about freedom and social control.
 ```
 
 ```text
-Ce imi recomanzi daca iubesc povestile fantastice?
+What would you recommend if I love fantasy stories?
 ```
 
 ```text
-Vreau ceva despre magie, prietenie si aventura.
+I want something about magic, friendship, and adventure.
 ```
 
 ```text
-Vreau o poveste despre razboi, trauma si prietenie.
+I want a story about war, trauma, and friendship.
 ```
 
 ```text
-Vreau o carte despre supravietuire si stiinta.
+I want a book about survival and science.
 ```
 
 ```text
-Ce este 1984?
+What is 1984?
 ```
 
 ```text
-Povesteste-mi despre Dune.
+Tell me about Dune.
 ```
 
-Exemplu off-topic:
+Off-topic example:
 
 ```text
-Care este vremea azi?
+What is the weather today?
 ```
 
-Smart Librarian ar trebui sa explice ca poate ajuta doar cu carti.
+Smart Librarian should explain that it can only help with books.
 
 ---
 
 # Speech to Text
 
-Pentru input vocal:
+For voice input:
 
-1. apasa butonul cu microfon;
-2. permite browserului accesul la microfon;
-3. vorbeste;
-4. apasa Stop;
-5. asteapta transcrierea;
-6. textul apare in composer;
-7. verifica textul si apasa Send.
+1. press the microphone button;
+2. allow the browser to access the microphone;
+3. speak;
+4. press Stop;
+5. wait for the transcription;
+6. the text will appear in the composer;
+7. review the text and press Send.
 
-Daca microfonul nu functioneaza, verifica permisiunile browserului pentru `localhost`.
+If the microphone does not work, check the browser permissions for `localhost`.
 
 ---
 
 # Text to Speech
 
-Dupa un raspuns valid despre o carte, apasa:
+After receiving a valid response about a book, press:
 
 ```text
-Asculta
+Listen
 ```
 
-Backendul genereaza un fisier audio, iar React afiseaza playerul.
+The backend generates an audio file and React displays the audio player.
 
-Vocea poate fi schimbata din Settings.
+The voice can be changed from Settings.
 
 ---
 
 # Image Generation
 
-Dupa un raspuns valid despre o carte, apasa:
+After receiving a valid response about a book, press:
 
 ```text
-Vizualizeaza
+Visualize
 ```
 
-Aplicatia genereaza o ilustratie inspirata de carte si o afiseaza sub raspuns.
+The application generates an illustration inspired by the book and displays it below the response.
 
-Generarea imaginii poate dura mai mult decat un raspuns text.
+Image generation may take longer than generating a text response.
 
 ---
 
-# Date locale
+# Local data
 
-Aplicatia functioneaza in Guest Mode.
+The application works in Guest Mode.
 
-Istoricul chatului este salvat in browser folosind:
+Chat history is stored in the browser using:
 
 ```text
 localStorage
 ```
 
-Cheile principale sunt:
+The main keys are:
 
 ```text
 smartLibrarianChats
 smartLibrarianSettings
 ```
 
-Din Settings se poate:
+From Settings, the user can:
 
-- opri salvarea istoricului;
-- sterge toate conversatiile locale;
-- schimba vocea TTS.
+* disable chat history storage;
+* delete all local conversations;
+* change the TTS voice.
 
-Nu exista baza de date pentru conturi si nu exista login/register in versiunea curenta.
+There is no account database and there is no login/register system in the current version.
 
 ---
 
-# Fisiere si foldere care nu trebuie urcate pe Git
+# Files and folders that should not be uploaded to Git
 
-`.gitignore` ar trebui sa ignore cel putin:
+`.gitignore` should ignore at least:
 
 ```text
 .env
@@ -873,11 +873,11 @@ __pycache__/
 
 ---
 
-# Probleme comune
+# Common issues
 
-## `npm` nu functioneaza in PowerShell
+## `npm` does not work in PowerShell
 
-Pe acest proiect folosim:
+For this project, use:
 
 ```powershell
 npm.cmd install
@@ -885,57 +885,57 @@ npm.cmd run dev
 npm.cmd run build
 ```
 
-in loc de comenzile `npm` simple.
+instead of the standard `npm` commands.
 
-## Frontendul spune ca nu poate comunica cu backendul
+## The frontend says it cannot communicate with the backend
 
-Verifica daca ruleaza:
+Check whether the following command is running:
 
 ```powershell
 py -m uvicorn backend.app.main:app --reload
 ```
 
-si incearca:
+and try opening:
 
 ```text
 http://127.0.0.1:8000/health
 ```
 
-## Nu gaseste carti / ChromaDB
+## Books cannot be found / ChromaDB issue
 
-Ruleaza din nou:
+Run again:
 
 ```powershell
 py -m backend.scripts.ingest_books
 ```
 
-## Eroare legata de API key
+## API key error
 
-Verifica daca exista `.env` si daca variabila `OPENAI_API_KEY` este setata.
+Check whether `.env` exists and whether the `OPENAI_API_KEY` variable is set.
 
-Nu pune cheia direct in cod si nu urca `.env` pe Git.
+Do not place the key directly in the source code and do not upload `.env` to Git.
 
-## Microfonul nu merge
+## The microphone does not work
 
-Verifica permisiunea pentru microfon in browser si asigura-te ca folosesti aplicatia prin `localhost`.
+Check the microphone permission in the browser and make sure you are using the application through `localhost`.
 
 ---
 
-# Pe scurt
+# In short
 
-Partea principala a proiectului este:
+The main part of the project is:
 
 ```text
-RAG cu ChromaDB
+RAG with ChromaDB
 +
 OpenAI embeddings
 +
 GPT
 +
-tool calling cu get_summary_by_title()
+tool calling with get_summary_by_title()
 ```
 
-Peste aceasta parte au fost adaugate:
+On top of this core functionality, the following features were added:
 
 ```text
 React UI
@@ -948,9 +948,10 @@ Speech to Text
 Image Generation
 ```
 
-Scopul proiectului nu este doar sa functioneze, ci sa poata fi explicat. Cel mai important flow de retinut este:
+The goal of the project is not only for it to work, but also for its architecture and workflow to be easy to explain.
+
+The most important flow to remember is:
 
 ```text
-User -> React -> FastAPI -> Safety -> Intent -> Embeddings -> ChromaDB -> GPT -> Tool -> Raspuns
+User -> React -> FastAPI -> Safety -> Intent -> Embeddings -> ChromaDB -> GPT -> Tool -> Response
 ```
-
